@@ -1,15 +1,20 @@
-import React, { useState, type JSX } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
-import './App.css'; // This will hold our new component styles
+import Dashboard from './Dashboard';
+import Assessments from './Assessments'; // Import new components
+import Reports from './Reports';
+import './App.css';
 
-// --- Icon Components for a more professional look ---
-const BookIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/></svg>;
-const BrainIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v0A2.5 2.5 0 0 1 9.5 7h-3A2.5 2.5 0 0 1 4 4.5v0A2.5 2.5 0 0 1 6.5 2h3Z"/><path d="M14.5 2A2.5 2.5 0 0 1 17 4.5v0A2.5 2.5 0 0 1 14.5 7h-3a2.5 2.5 0 0 1-2.5-2.5v0A2.5 2.5 0 0 1 11.5 2h3Z"/><path d="M4 12v3a2 2 0 0 0 2 2h2"/><path d="M16 12v3a2 2 0 0 1-2 2h-2"/></svg>;
-const ClipboardIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>;
-const CheckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
+// --- Icon Components ---
+const HomeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
+const PlannerIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>;
+const CheckSquareIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>;
+const BarChartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg>;
 
+// --- Main App Component ---
 function App() {
+  const [activeView, setActiveView] = useState('dashboard');
   const [language, setLanguage] = useState('hindi');
   const [gradeLevel, setGradeLevel] = useState('Class 7');
   const [subject, setSubject] = useState('Science');
@@ -21,7 +26,7 @@ function App() {
 
   const handleFileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) { setError('Please select a syllabus file to upload.'); return; }
+    if (!file) { setError('Please select a file.'); return; }
     setLoading('extracting');
     setError('');
     setExtractedText('');
@@ -33,9 +38,7 @@ function App() {
       setExtractedText(response.data.extracted_text || "AI could not read the text. Please type or paste it here.");
     } catch (err: any) {
       setError('Failed to extract text from image.');
-    } finally {
-      setLoading('');
-    }
+    } finally { setLoading(''); }
   };
 
   const handleContentGeneration = async () => {
@@ -49,77 +52,74 @@ function App() {
       setGeneratedContent(response.data);
     } catch (err: any) {
       setError('Failed to generate materials.');
-    } finally {
-      setLoading('');
-    }
+    } finally { setLoading(''); }
   };
 
-  const ResultCard = ({ title, content, icon }: { title: string, content: string, icon: JSX.Element }) => (
-    <div className="result-card">
-      <div className="result-card-header">
-        <div className="result-card-icon">{icon}</div>
-        <h3>{title}</h3>
-      </div>
-      <div className="markdown-content"><ReactMarkdown>{content}</ReactMarkdown></div>
-    </div>
+  const ResultCard = ({ title, content }: { title: string, content: string }) => (
+    <div className="result-card"><h3>{title}</h3><div className="markdown-content"><ReactMarkdown>{content}</ReactMarkdown></div></div>
   );
+
+  const LessonPlanner = () => (
+    <>
+      <div className="workflow-step">
+        <div className="step-header"><h2>1. Upload Syllabus & Extract Text</h2></div>
+        <form onSubmit={handleFileSubmit} className="upload-form">
+          <div className="form-group"><label>Language</label><select value={language} onChange={(e) => setLanguage(e.target.value)}><option value="hindi">Hindi</option><option value="tamil">Tamil</option><option value="assamese">Assamese</option></select></div>
+          <div className="form-group"><label>Grade Level</label><input type="text" value={gradeLevel} onChange={(e) => setGradeLevel(e.target.value)} /></div>
+          <div className="form-group"><label>Subject</label><input type="text" value={subject} onChange={(e) => setSubject(e.target.value)} /></div>
+          <div className="form-group"><label>Syllabus File (Image)</label><input type="file" accept="image/*" onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} /></div>
+          <button type="submit" disabled={!!loading}> {loading === 'extracting' ? 'Reading Image...' : 'Extract Text'} </button>
+        </form>
+      </div>
+      {loading === 'extracting' && <div className="loading-state"><div className="spinner"></div></div>}
+      {extractedText && (
+        <div className="workflow-step">
+          <div className="step-header"><h2>2. Verify Text & Generate Materials</h2></div>
+          <div className="extracted-text-section"><label>Extracted / Corrected Text</label><textarea value={extractedText} onChange={(e) => setExtractedText(e.target.value)} rows={8}></textarea><button onClick={handleContentGeneration} disabled={!!loading}> {loading === 'generating' ? 'Generating...' : 'Generate Materials'} </button></div>
+        </div>
+      )}
+      {error && <div className="error-message">{error}</div>}
+    </>
+  );
+
+  const renderActiveView = () => {
+    switch (activeView) {
+      case 'dashboard': return <Dashboard />;
+      case 'planner': return (
+        <div className="planner-view">
+          <div className="planner-controls"><LessonPlanner /></div>
+          <div className="planner-results">
+            {loading === 'generating' && <div className="loading-state"><div className="spinner"></div><p>AI is working...</p></div>}
+            {!loading && !generatedContent && <div className="placeholder"><h3>Generated Materials Will Appear Here</h3></div>}
+            {generatedContent && generatedContent.success && (
+              <div className="results-grid">
+                <ResultCard title="Lesson Plan" content={generatedContent.lesson_plan} />
+                <ResultCard title="Worksheet" content={generatedContent.worksheet} />
+                <ResultCard title="Quiz" content={generatedContent.quiz} />
+              </div>
+            )}
+          </div>
+        </div>
+      );
+      case 'assessments': return <Assessments />;
+      case 'reports': return <Reports />;
+      default: return <Dashboard />;
+    }
+  };
 
   return (
     <div className="app-container">
       <aside className="sidebar">
-        <header>
-          <h1>Shiksha Sahayak <span>MVP</span> 🇮🇳</h1>
-          <p>AI Teaching Assistant</p>
-        </header>
-        
-        <div className="workflow-step">
-          <div className="step-header">
-            <div className="step-number">1</div>
-            <h2>Upload Syllabus</h2>
-          </div>
-          <form onSubmit={handleFileSubmit} className="upload-form">
-            <div className="form-group"><label>Language</label><select value={language} onChange={(e) => setLanguage(e.target.value)}><option value="hindi">Hindi</option><option value="tamil">Tamil</option><option value="assamese">Assamese</option></select></div>
-            <div className="form-group"><label>Grade Level</label><input type="text" value={gradeLevel} onChange={(e) => setGradeLevel(e.target.value)} /></div>
-            <div className="form-group"><label>Subject</label><input type="text" value={subject} onChange={(e) => setSubject(e.target.value)} /></div>
-            <div className="form-group"><label>Syllabus File (Image)</label><input type="file" accept="image/*" onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} /></div>
-            <button type="submit" disabled={!!loading}> {loading === 'extracting' ? 'Reading Image...' : 'Extract Text'} </button>
-          </form>
-        </div>
-
-        {extractedText && (
-          <div className="workflow-step">
-            <div className="step-header">
-              <div className="step-number">2</div>
-              <h2>Verify & Generate</h2>
-            </div>
-            <div className="extracted-text-section">
-              <label>Extracted / Corrected Text</label>
-              <textarea value={extractedText} onChange={(e) => setExtractedText(e.target.value)} rows={8}></textarea>
-              <button onClick={handleContentGeneration} disabled={!!loading}> {loading === 'generating' ? 'Generating...' : 'Generate Materials'} </button>
-            </div>
-          </div>
-        )}
+        <header><h1>Shiksha Sahayak 🇮🇳</h1><p>AI Teaching Assistant</p></header>
+        <nav className="main-nav">
+          <a href="#" className={activeView === 'dashboard' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setActiveView('dashboard'); }}><HomeIcon /> Dashboard</a>
+          <a href="#" className={activeView === 'planner' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setActiveView('planner'); }}><PlannerIcon /> Lesson Planner</a>
+          <a href="#" className={activeView === 'assessments' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setActiveView('assessments'); }}><CheckSquareIcon /> Assessments</a>
+          <a href="#" className={activeView === 'reports' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setActiveView('reports'); }}><BarChartIcon /> Reports</a>
+        </nav>
+        <div className="sidebar-footer"><p>Version 1.0 (MVP)</p></div>
       </aside>
-
-      <main className="main-content">
-        {loading && <div className="loading-state"><div className="spinner"></div><p>AI is working its magic...</p></div>}
-        {error && <div className="error-message">{error}</div>}
-        {!loading && !error && !generatedContent && (
-          <div className="placeholder">
-            <BrainIcon />
-            <h2>Your AI-Generated Materials Will Appear Here</h2>
-            <p>Complete the steps on the left to begin.</p>
-          </div>
-        )}
-        
-        {generatedContent && generatedContent.success && (
-          <div className="results-grid">
-            <ResultCard icon={<BookIcon />} title="Lesson Plan" content={generatedContent.lesson_plan} />
-            <ResultCard icon={<ClipboardIcon />} title="Worksheet" content={generatedContent.worksheet} />
-            <ResultCard icon={<CheckIcon />} title="Quiz" content={generatedContent.quiz} />
-          </div>
-        )}
-      </main>
+      <main className="main-content">{renderActiveView()}</main>
     </div>
   );
 }
