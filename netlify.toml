@@ -1,9 +1,14 @@
 [build]
-  base    = "frontend"
-  publish = "frontend/dist"
+  # This tells Netlify to run the build command from inside the 'frontend' folder.
+  base = "frontend"
+  
+  # This tells Netlify where to find the final website files after the build.
+  publish = "dist"
+  
+  # The command to build the site.
   command = "npm run build"
 
 [[redirects]]
   from = "/api/*"
-  to = "YOUR_BACKEND_URL/:splat"
+  to = "https://shiksha-sahayak-backend.onrender.com/:splat"
   status = 200
