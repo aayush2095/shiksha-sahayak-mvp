@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import Dashboard from './Dashboard';
@@ -7,10 +7,10 @@ import Reports from './Reports';
 import './App.css';
 
 // --- Icon Components ---
-const HomeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
-const PlannerIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>;
-const CheckSquareIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>;
-const BarChartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg>;
+const HomeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>;
+const PlannerIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4" /><path d="M16 2v4" /><rect width="18" height="18" x="3" y="4" rx="2" /><path d="M3 10h18" /></svg>;
+const CheckSquareIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>;
+const BarChartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="20" y2="10" /><line x1="18" x2="18" y1="20" y2="4" /><line x1="6" x2="6" y1="20" y2="16" /></svg>;
 
 // --- Main App Component ---
 function App() {
@@ -18,7 +18,7 @@ function App() {
   const [language, setLanguage] = useState('hindi');
   const [gradeLevel, setGradeLevel] = useState('Class 7');
   const [subject, setSubject] = useState('Science');
-  const [file, setFile] = useState<File | null>(null);
+  const fileRef = useRef<File | null>(null);
   const [loading, setLoading] = useState('');
   const [error, setError] = useState('');
   const [extractedText, setExtractedText] = useState('');
@@ -26,19 +26,33 @@ function App() {
 
   const handleFileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) { setError('Please select a file.'); return; }
+    const file = fileRef.current;
+
+    if (!file) {
+      setError('Please select a file.');
+      return;
+    }
+
     setLoading('extracting');
     setError('');
     setExtractedText('');
     setGeneratedContent(null);
+
     try {
       const formData = new FormData();
       formData.append('file', file);
+
+      // debug log
+      console.log("File in formData:", formData.get('file'));
+
       const response = await axios.post('/api/v1/extract-text-from-image', formData);
       setExtractedText(response.data.extracted_text || "AI could not read the text. Please type or paste it here.");
     } catch (err: any) {
+      console.error("Upload error:", err);
       setError('Failed to extract text from image.');
-    } finally { setLoading(''); }
+    } finally {
+      setLoading('');
+    }
   };
 
   const handleContentGeneration = async () => {
@@ -67,7 +81,15 @@ function App() {
           <div className="form-group"><label>Language</label><select value={language} onChange={(e) => setLanguage(e.target.value)}><option value="hindi">Hindi</option><option value="tamil">Tamil</option><option value="assamese">Assamese</option></select></div>
           <div className="form-group"><label>Grade Level</label><input type="text" value={gradeLevel} onChange={(e) => setGradeLevel(e.target.value)} /></div>
           <div className="form-group"><label>Subject</label><input type="text" value={subject} onChange={(e) => setSubject(e.target.value)} /></div>
-          <div className="form-group"><label>Syllabus File (Image)</label><input type="file" accept="image/*" onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} /></div>
+          <div className="form-group"><label>Syllabus File (Image)</label><input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              if (e.target.files?.[0]) {
+                fileRef.current = e.target.files[0];
+              }
+            }}
+          /></div>
           <button type="submit" disabled={!!loading}> {loading === 'extracting' ? 'Reading Image...' : 'Extract Text'} </button>
         </form>
       </div>
