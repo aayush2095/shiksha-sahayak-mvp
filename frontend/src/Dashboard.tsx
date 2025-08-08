@@ -1,4 +1,3 @@
-import React from 'react';
 import './Dashboard.css'; // We will create this file next
 
 const StatCard = ({ title, value, icon }: { title: string, value: string, icon: string }) => (

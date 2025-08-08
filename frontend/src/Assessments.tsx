@@ -1,4 +1,3 @@
-import React from 'react';
 import './Placeholder.css'; // We will update this file next
 
 const Assessments = () => {

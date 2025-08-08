@@ -1,4 +1,3 @@
-import React from 'react';
 import './Placeholder.css'; // This will use the same updated styles
 
 const Reports = () => {
