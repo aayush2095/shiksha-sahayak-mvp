@@ -1,0 +1,9 @@
+[build]
+  base    = "frontend"
+  publish = "frontend/dist"
+  command = "npm run build"
+
+[[redirects]]
+  from = "/api/*"
+  to = "YOUR_BACKEND_URL/:splat"
+  status = 200
