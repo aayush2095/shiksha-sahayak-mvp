@@ -63,7 +63,7 @@ class ContentRequest(BaseModel):
     extracted_text: str
 
 # --- API Endpoints ---
-@app.post("/v1/extract-text-from-image")
+@app.post("/api/v1/extract-text-from-image")
 async def extract_text(file: UploadFile = File(...)):
     logger.info(f"Received request to extract text from file: {file.filename}")
     if not is_ai_configured:
@@ -80,7 +80,7 @@ async def extract_text(file: UploadFile = File(...)):
         logger.error(f"Error during text extraction: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/v1/generate-content-from-text")
+@app.post("/api/v1/generate-content-from-text")
 async def generate_content(request: ContentRequest):
     logger.info(f"Received request to generate content in {request.language} for {request.grade_level} {request.subject}.")
     if not is_ai_configured:
